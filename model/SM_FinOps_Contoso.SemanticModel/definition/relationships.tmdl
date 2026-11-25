@@ -1,0 +1,11 @@
+relationship Koszty_Kalendarz
+	fromColumn: Koszty.ChargeDate
+	toColumn: Kalendarz.Data
+
+relationship Koszty_Spolki
+	fromColumn: Koszty.CostCenterAlokacja
+	toColumn: Spolki.CostCenter
+
+relationship Koszty_Subskrypcje
+	fromColumn: Koszty.SubAccountId
+	toColumn: Subskrypcje.SubAccountId

@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Sekrety i konfiguracja lokalna
+.env
+.env.*
+!.env.example
+*.log
+
+# FinOps toolkit pobierany przez metodyka/download_ftk.ps1
+metodyka/ftk-v15/
+
+# Stan i wyniki wdrożeń (identyfikatory tenanta, URI)
+*_output.json
+deployment.json
+replay.json
+eventhouse_uri.txt
+.fabric/
+
+# Edytor / system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

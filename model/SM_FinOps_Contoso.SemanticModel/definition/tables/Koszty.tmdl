@@ -1,0 +1,245 @@
+/// Wiersze kosztow w formacie FOCUS 1.0 (dzien x zasob x miernik). Dane syntetyczne Contoso Polska.
+table Koszty
+
+	/// Suma EffectiveCost z FOCUS: koszt po rabatach z amortyzacja rezerwacji. Glowna miara do showback i chargeback.
+	measure 'Koszt efektywny' = SUM(Koszty[EffectiveCost])
+		formatString: #,##0" €"
+		displayFolder: Koszty
+
+	/// Suma BilledCost z FOCUS: kwota na fakturze, zakupy rezerwacji widoczne w dniu zakupu.
+	measure 'Koszt fakturowany' = SUM(Koszty[BilledCost])
+		formatString: #,##0" €"
+		displayFolder: Koszty
+
+	/// Suma ListCost z FOCUS: koszt wedlug cen katalogowych bez rabatow.
+	measure 'Koszt cennikowy' = SUM(Koszty[ListCost])
+		formatString: #,##0" €"
+		displayFolder: Koszty
+
+	/// Roznica miedzy kosztem cennikowym a efektywnym, czyli efekt rabatow i rezerwacji.
+	measure 'Oszczednosci' = [Koszt cennikowy] - [Koszt efektywny]
+		formatString: #,##0" €"
+		displayFolder: Optymalizacja
+
+	/// Oszczednosci jako odsetek kosztu cennikowego (Effective Savings Rate).
+	measure 'Stopa oszczednosci' = DIVIDE([Oszczednosci], [Koszt cennikowy])
+		formatString: 0.0%
+		displayFolder: Optymalizacja
+
+	/// Koszt efektywny wierszy, w ktorych brak tagu CostCenter albo tag ma bledna wielkosc liter.
+	measure 'Koszt bez poprawnego tagu' = CALCULATE([Koszt efektywny], Koszty[Status tagowania] <> "Poprawny")
+		formatString: #,##0" €"
+		displayFolder: Alokacja
+
+	/// Odsetek kosztu efektywnego bez poprawnego tagu CostCenter. KPI zgodnosci tagowania.
+	measure 'Udzial kosztu bez poprawnego tagu' = DIVIDE([Koszt bez poprawnego tagu], [Koszt efektywny])
+		formatString: 0.0%
+		displayFolder: Alokacja
+
+	/// Koszt efektywny godzin rezerwacji, ktore nie zostaly wykorzystane (CommitmentDiscountStatus = Unused).
+	measure 'Koszt niewykorzystanych rezerwacji' = CALCULATE([Koszt efektywny], Koszty[CommitmentDiscountStatus] = "Unused")
+		formatString: #,##0" €"
+		displayFolder: Optymalizacja
+
+	/// Udzial wykorzystanej czesci rezerwacji w calym koszcie rezerwacji (Used wobec Used plus Unused).
+	measure 'Wykorzystanie rezerwacji' = ```
+			DIVIDE(
+				CALCULATE([Koszt efektywny], Koszty[CommitmentDiscountStatus] = "Used"),
+				CALCULATE([Koszt efektywny], NOT ISBLANK(Koszty[CommitmentDiscountStatus]))
+			)
+			```
+		formatString: 0.0%
+		displayFolder: Optymalizacja
+
+	/// Koszt efektywny w miesiacu poprzedzajacym okres z kontekstu filtra.
+	measure 'Koszt poprzedni miesiac' = CALCULATE([Koszt efektywny], DATEADD(Kalendarz[Data], -1, MONTH))
+		formatString: #,##0" €"
+		displayFolder: Trend
+
+	/// Zmiana kosztu efektywnego miesiac do miesiaca.
+	measure 'Zmiana m/m' = ```
+			VAR Biezacy = [Koszt efektywny]
+			VAR Poprzedni = [Koszt poprzedni miesiac]
+			RETURN
+				DIVIDE(Biezacy - Poprzedni, Poprzedni)
+			```
+		formatString: 0.0%
+		displayFolder: Trend
+
+	/// Liczba unikalnych zasobow (ResourceId) z kosztem w okresie.
+	measure 'Liczba zasobow' = DISTINCTCOUNT(Koszty[ResourceId])
+		formatString: #,##0
+		displayFolder: Koszty
+
+	/// Klucz do Kalendarz (poczatek dnia naliczenia)
+	column ChargeDate
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-mm-dd
+		summarizeBy: none
+		sourceColumn: ChargeDate
+
+	/// Klucz do Spolki po alokacji (tag, potem subskrypcja)
+	column CostCenterAlokacja
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: CostCenterAlokacja
+
+	/// Klucz do Subskrypcje
+	column SubAccountId
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: SubAccountId
+
+	/// Identyfikator zasobu Azure
+	column ResourceId
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: ResourceId
+
+	column EffectiveCost
+		dataType: double
+		isHidden
+		summarizeBy: sum
+		sourceColumn: EffectiveCost
+
+	column BilledCost
+		dataType: double
+		isHidden
+		summarizeBy: sum
+		sourceColumn: BilledCost
+
+	column ListCost
+		dataType: double
+		isHidden
+		summarizeBy: sum
+		sourceColumn: ListCost
+
+	/// Usluga wedlug FOCUS, np. Virtual Machines, Azure OpenAI
+	column ServiceName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ServiceName
+
+	/// Kategoria uslugi wedlug FOCUS, np. Compute, Analytics
+	column ServiceCategory
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ServiceCategory
+
+	/// Nazwa zasobu Azure
+	column ResourceName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ResourceName
+
+	/// Typ zasobu
+	column ResourceType
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ResourceType
+
+	/// Grupa zasobow (rozszerzenie Microsoft)
+	column x_ResourceGroupName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: x_ResourceGroupName
+
+	/// Region Azure
+	column RegionName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: RegionName
+
+	/// Usage albo Purchase
+	column ChargeCategory
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ChargeCategory
+
+	/// Standard albo Committed (rezerwacja)
+	column PricingCategory
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PricingCategory
+
+	/// Typ zobowiazania, tu Reservation
+	column CommitmentDiscountType
+		dataType: string
+		summarizeBy: none
+		sourceColumn: CommitmentDiscountType
+
+	/// Nazwa rezerwacji
+	column CommitmentDiscountName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: CommitmentDiscountName
+
+	/// Used albo Unused dla wierszy rezerwacji
+	column CommitmentDiscountStatus
+		dataType: string
+		summarizeBy: none
+		sourceColumn: CommitmentDiscountStatus
+
+	/// Kategoria miernika
+	column x_SkuMeterCategory
+		dataType: string
+		summarizeBy: none
+		sourceColumn: x_SkuMeterCategory
+
+	/// Nazwa miernika, np. gpt-4o input tokens
+	column x_SkuMeterName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: x_SkuMeterName
+
+	/// Jednostka cenowa
+	column PricingUnit
+		dataType: string
+		summarizeBy: none
+		sourceColumn: PricingUnit
+
+	/// Surowe tagi zasobu w JSON
+	column Tags
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Tags
+
+	/// Wartosc tagu CostCenter zapisanego dokladnie w tej wielkosci liter
+	column 'Tag CostCenter'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: TagCostCenter
+
+	/// Wartosc tagu env (bez wzgledu na wielkosc liter klucza)
+	column 'Tag Env'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: TagEnv
+
+	/// Wartosc tagu app
+	column 'Tag App'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: TagApp
+
+	/// Poprawny, Bledna wielkosc liter, Brak CostCenter albo Brak tagow
+	column 'Status tagowania'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: StatusTagowania
+
+	/// Skad przypisano CostCenter: Tag, Subskrypcja albo Brak
+	column 'Zrodlo alokacji'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ZrodloAlokacji
+
+	partition 'Koszty' = entity
+		mode: directLake
+		source
+			entityName: focus_costs
+			expressionSource: DL_lh_finops

@@ -1,0 +1,61 @@
+/// Kalendarz dzienny od 2026-05-01 do 2026-11-30.
+table Kalendarz
+	dataCategory: Time
+
+	/// Dzien
+	column Data
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		summarizeBy: none
+		sourceColumn: Data
+		isKey
+
+	/// Rok kalendarzowy
+	column Rok
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: Rok
+
+	column MiesiacNr
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: MiesiacNr
+
+	/// Miesiac w formacie RRRR-MM
+	column Miesiac
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Miesiac
+
+	/// 1 poniedzialek, 7 niedziela
+	column 'Dzien tygodnia'
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: DzienTygodnia
+
+	/// Prawda dla soboty i niedzieli
+	column 'Czy weekend'
+		dataType: boolean
+		summarizeBy: none
+		sourceColumn: CzyWeekend
+
+	hierarchy 'Rok miesiac dzien'
+
+		level Rok
+			column: Rok
+
+		level Miesiac
+			column: Miesiac
+
+		level Data
+			column: Data
+
+	partition 'Kalendarz' = entity
+		mode: directLake
+		source
+			entityName: dim_data
+			expressionSource: DL_lh_finops

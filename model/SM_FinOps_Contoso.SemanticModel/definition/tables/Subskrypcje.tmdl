@@ -1,0 +1,38 @@
+/// Subskrypcje Azure z przypisaniem do spolki i srodowiska (dane syntetyczne).
+table Subskrypcje
+
+	column SubAccountId
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: SubAccountId
+
+	/// Nazwa subskrypcji
+	column Subskrypcja
+		dataType: string
+		summarizeBy: none
+		sourceColumn: SubAccountName
+
+	/// Spolka, do ktorej nalezy subskrypcja
+	column 'Spolka wlasciciel subskrypcji'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Spolka
+
+	column 'CostCenter subskrypcji'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: CostCenter
+
+	/// prod, dev albo shared
+	column Srodowisko
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Srodowisko
+
+	partition 'Subskrypcje' = entity
+		mode: directLake
+		source
+			entityName: dim_subskrypcje
+			expressionSource: DL_lh_finops

@@ -1,0 +1,10 @@
+model Model
+	culture: pl-PL
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: pl-PL
+
+ref table Koszty
+ref table Kalendarz
+ref table Spolki
+ref table Subskrypcje

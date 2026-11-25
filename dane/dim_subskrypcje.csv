@@ -1,0 +1,9 @@
+SubAccountId,SubAccountName,Spolka,CostCenter,Srodowisko
+/subscriptions/80d89929-0b41-f54b-b57e-927e413efda1,sub-contoso-retail-prod,Contoso Retail,CC-100,prod
+/subscriptions/101391e2-2c78-dedf-f110-97cc2cd7172f,sub-contoso-retail-dev,Contoso Retail,CC-100,dev
+/subscriptions/13575d34-a997-1fb9-6919-1e7af3acba8d,sub-contoso-logistics-prod,Contoso Logistics,CC-200,prod
+/subscriptions/3278ee76-9d5e-87b9-dc62-c01de3bd88eb,sub-contoso-logistics-dev,Contoso Logistics,CC-200,dev
+/subscriptions/514289f8-3552-f3f6-3afc-de96eaa30629,sub-contoso-dataplatform-prod,Contoso Data Platform,CC-300,prod
+/subscriptions/30de98a5-e237-53b3-5791-29a9d608f704,sub-contoso-dataplatform-dev,Contoso Data Platform,CC-300,dev
+/subscriptions/8f6f361c-cb5d-08bc-3305-4d6b0946bf0a,sub-contoso-ailab,Contoso AI Lab,CC-400,dev
+/subscriptions/b4d6f561-b803-7cc1-b815-1816cc23bb92,sub-contoso-shared-connectivity,Contoso Shared Services,CC-900,prod

@@ -1,0 +1,53 @@
+/// Spolki grupy Contoso Polska z centrami kosztow i budzetami miesiecznymi (dane syntetyczne).
+table Spolki
+
+	/// Budzet miesieczny spolek pomnozony przez liczbe miesiecy z kosztami w kontekscie filtra.
+	measure 'Budzet' = ```
+			SUMX(
+				CALCULATETABLE(VALUES(Kalendarz[Miesiac]), Koszty),
+				CALCULATE(SUM(Spolki[BudzetMiesiecznyEUR]))
+			)
+			```
+		formatString: #,##0" €"
+		displayFolder: Budzet
+
+	/// Koszt efektywny jako odsetek budzetu. Powyzej 100% oznacza przekroczenie.
+	measure 'Wykonanie budzetu' = DIVIDE([Koszt efektywny], [Budzet])
+		formatString: 0.0%
+		displayFolder: Budzet
+
+	/// Koszt efektywny minus budzet. Wartosc dodatnia oznacza przekroczenie.
+	measure 'Odchylenie od budzetu' = [Koszt efektywny] - [Budzet]
+		formatString: #,##0" €"
+		displayFolder: Budzet
+
+	/// Centrum kosztow, klucz alokacji
+	column CostCenter
+		dataType: string
+		summarizeBy: none
+		sourceColumn: CostCenter
+
+	/// Nazwa spolki
+	column Spolka
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Spolka
+
+	/// Adres osoby odpowiedzialnej za budzet
+	column 'Wlasciciel budzetu'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: WlascicielBudzetu
+
+	column BudzetMiesiecznyEUR
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: BudzetMiesiecznyEUR
+
+	partition 'Spolki' = entity
+		mode: directLake
+		source
+			entityName: dim_spolki
+			expressionSource: DL_lh_finops
